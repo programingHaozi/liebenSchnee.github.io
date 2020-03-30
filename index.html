@@ -149,55 +149,32 @@
     
     
     <div class="col-12 col-md-12 mx-auto index-info">
-      <a href="/2020/03/12/title/">
-        <p class="h4 index-header">title</p>
+      <a href="/2020/03/18/OC%E4%B8%8ESwift%E6%B7%B7%E7%BC%96/">
+        <p class="h4 index-header">OC与Swift混编</p>
       </a>
 
-      <a href="/2020/03/12/title/">
+      <a href="/2020/03/18/OC%E4%B8%8ESwift%E6%B7%B7%E7%BC%96/">
         
         
           
         
         <div class="index-excerpt" >
-          <div class="index-text mb-1">titlelet swift = 1
-</div>
+          <div class="index-text mb-1">title: OC与Swift混编
+总结一下在OC与Swift混编的配置以及在开发中需要注意的一些点.
+工程配置桥接文件当我们在Swift项目（OC项目）中首次添加OC文件（Swift文件）时，Xcode会自动弹出桥接文件创建的提示，如图
+
+这里我们可以选择Xcode自动创建或者手动创建，创建完成后系统会自动生成2个桥接文件，如图
+
+$(SWIFT_MODULE_NAME)-Bridging-Header.h，这个头文件直接在目录中，如图
+
+$(SWIFT_MODULE_NAME)-Swift.h在目录中不可见.
+如果我们需要手动创建的也是可以的，只要保证文件名与Build Setting中p</div>
         </div>
       </a>
 
       <div class="index-btm">
         
-          <i class="iconfont icon-riqi2"></i>&nbsp;2020-03-12&nbsp;&nbsp;
-        
-        
-        
-      </div>
-    </div>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <div class="col-12 col-md-12 mx-auto index-info">
-      <a href="/2020/03/10/hello-world/">
-        <p class="h4 index-header">Hello World</p>
-      </a>
-
-      <a href="/2020/03/10/hello-world/">
-        
-        
-          
-        
-        <div class="index-excerpt" >
-          <div class="index-text mb-1">Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub.
-Quick StartCreate a new post$ hexo new &quot;My New Post&quot;
-More info: Writing
-Run server$ hexo server</div>
-        </div>
-      </a>
-
-      <div class="index-btm">
-        
-          <i class="iconfont icon-riqi2"></i>&nbsp;2020-03-10&nbsp;&nbsp;
+          <i class="iconfont icon-riqi2"></i>&nbsp;2020-03-18&nbsp;&nbsp;
         
         
         
