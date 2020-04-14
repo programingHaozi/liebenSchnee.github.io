@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  <title>调试Runtime源码 - liebenSchnee</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/5.12.1/css/all.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/mdbootstrap/4.13.0/css/mdb.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/3.0.1/github-markdown.min.css" />
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1067060_qzomjdt8bmp.css">
+
+
+
+  <link  rel="stylesheet" href="/lib/prettify/tomorrow-night-eighties.min.css" />
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link defer rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+<!-- 自定义样式保持在最底部 -->
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>liebenSchnee</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/">首页</a>
+          </li>
+        
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/archives/">归档</a>
+          </li>
+        
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/categories/">分类</a>
+          </li>
+        
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/tags/">标签</a>
+          </li>
+        
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/about/">关于</a>
+          </li>
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="view intro-2" id="background" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask rgba-black-light flex-center">
+          <div class="container text-center white-text fadeInUp">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              
+                <p class="mt-3 post-meta">
+                  <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+                  星期四, 四月 2日 2020, 8:53 晚上
+                </p>
+              
+
+              <p class="mt-1">
+                
+                  
+                  <span class="post-meta">
+                    <i class="far fa-chart-bar"></i>
+                    1.5k 字
+                  </span>
+                
+
+                
+                  
+                  <span class="post-meta">
+                      <i class="far fa-clock"></i>
+                      5 分钟
+                  </span>
+                
+
+                
+              </p>
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5 z-depth-3" id="board">
+          <div class="post-content mx-auto" id="post">
+            
+            <div class="markdown-body">
+              <h2 id="Runtime源码调试"><a href="#Runtime源码调试" class="headerlink" title="Runtime源码调试"></a>Runtime源码调试</h2><p>关于runtime讲解的内容网上非常多，有些地方看的一知半解，最好还是把苹果源码拿来跑一跑更利于理解。一番折腾之后，发现runtime源码调试还是非常简单的。</p>
+<h2 id="源码资源"><a href="#源码资源" class="headerlink" title="源码资源"></a>源码资源</h2><p><a href="https://opensource.apple.com/tarballs/objc4/" target="_blank" rel="noopener">苹果官方源码</a></p>
+<p><a href="https://github.com/RetVal/objc-runtime" target="_blank" rel="noopener">github开袋即食版本</a></p>
+<h2 id="编译过程"><a href="#编译过程" class="headerlink" title="编译过程"></a>编译过程</h2><h3 id="源码下载"><a href="#源码下载" class="headerlink" title="源码下载"></a>源码下载</h3><p>1.如果你选择编译苹果官方的源码，emmm…祝你好运。（objc4项目中有很多文件是缺失的，需要去<a href="https://opensource.apple.com/" target="_blank" rel="noopener">官网</a>自己下载匹配）</p>
+<p>2.懒人们看过来，为了更加高效迅速的学习runtime源码，我们选择站在大佬的肩膀看他们编译好的版本，从<a href="https://github.com/RetVal/objc-runtime" target="_blank" rel="noopener">github开袋即食版本</a>下载好源码，这里建议大家直接把git仓库clone下来，方便后面切换版本及自测。</p>
+<p><img src="http://q7zkcqazl.bkt.clouddn.com/runtimeDebug01.png" srcset="/img/loading.gif" alt="runtimeDebug01"></p>
+<h3 id="编译步骤"><a href="#编译步骤" class="headerlink" title="编译步骤"></a>编译步骤</h3><p>打开objc项目</p>
+<p><img src="http://q7zkcqazl.bkt.clouddn.com/runtimeDebug02.png" srcset="/img/loading.gif" alt="runtimeDebug02"></p>
+<p>1.objc库target以及编译环境macOS，由于创建的是macOS平台下的Library，所以不支持iOS平台编译，iOS目前动态库仅支持Framework的创建。</p>
+<p>2.源码区，这一块的group基本就是runtime的所有源码了，后面我们调试和查看的源码都在这里。</p>
+<p>3.作者帮我们添加了一个debug-objc的target，main.m是这个target的入口，后面我们调试代码都是在main函数里进行。</p>
+<p>4.product文件，编译好的动态库及其他target颜色会变为黑色，执行clean可以清楚build文件夹里动态库以便重新编译。</p>
+<p>5.项目target，对我们有用的是objc和debug-objc。</p>
+<p>6.objc库的2个脚本，设置动态库链接等，不要动。</p>
+<h2 id="调试过程"><a href="#调试过程" class="headerlink" title="调试过程"></a>调试过程</h2><h3 id="debug-objc调试"><a href="#debug-objc调试" class="headerlink" title="debug-objc调试"></a>debug-objc调试</h3><p>使用源码库自带的debug-objc target调试时注意一下几点：</p>
+<p>1.设置objc与debug-objc的General中的Deployment Target不大于你的mac系统版本（有时不设置会报错，如无错误提示可不管），debug-objc的Signing &amp; Capabilities设置中取消Automatically manage signing ,team设为None即可。</p>
+<p>2.scheme选择objc进行run，编译成功后，Products目录下libobjc.A.dylib颜色正常并可以在文件夹中找到，一般路径为/Users/XXX/Library/Developer/Xcode/DerivedData/XXX/Build/Products/Debug/libobjc.A.dylib ,Command + Shift + .可以显示隐藏文件夹Library。</p>
+<p>3.在debug-objc文件中的main.m文件中，main函数里打上断点，scheme选择debug-objc进行run，运行成功后走到断点处，此时我们在lldb里面输入image list 查看工程使用的库：</p>
+<p><img src="http://q7zkcqazl.bkt.clouddn.com/runtimeDebug03.png" srcset="/img/loading.gif" alt="runtimeDebug03"></p>
+<p>如果你看到libobjc.A.dylib库的地址是你项目编译的库地址时，那么恭喜你大功告成！</p>
+<p>这里可能有一部分人得到的路径结果是 /usr/lib/libobjc.A.dylib ，稍安勿躁，继续往下看。</p>
+<h3 id="自建工程调试"><a href="#自建工程调试" class="headerlink" title="自建工程调试"></a>自建工程调试</h3><p>创建自己的测试工程（注意是macOS下的app）完成后，在Build Phases中添加脚本</p>
+<p><img src="http://q7zkcqazl.bkt.clouddn.com/runtimeDebug04.png" srcset="/img/loading.gif" alt="runtimeDebug04"></p>
+<pre><code>install_name_tool -change /usr/lib/libobjc.A.dylib /Users/XXX/Library/Developer/Xcode/DerivedData/XXX/Build/Products/Debug/libobjc.A.dylib /Users/XXX/Library/Developer/Xcode/DerivedData/XXX/Build/Products/Debug/MACRuntimeTest2.app/Contents/MacOS/MACRuntimeTest2</code></pre><p>/usr/lib/libobjc.A.dylib是系统自带的runtime库，我们如果需要调试源码，就需要用我们自己编译的runtime库替换掉系统的库，上面这段脚本实际上就是为测试工程替换runtime库地址。</p>
+<p>同样在我们运行项目之后断点，查看image list ，检查runtime库是否替换成功。</p>
+<p>如果运行的时候遇到 Bad executable问题</p>
+<p><img src="http://q7zkcqazl.bkt.clouddn.com/runtimeDebug05.png" srcset="/img/loading.gif" alt="runtimeDebug05"></p>
+<p>解决办法：重启Xcode -&gt; clean -&gt; build -&gt; run</p>
+<h3 id="踩坑"><a href="#踩坑" class="headerlink" title="踩坑"></a>踩坑</h3><p>对于在上面调试中遇到问题，例如libobjc.A.dylib并没有被替换为我们自己编译的库，或者是编译报错 Symbol not found</p>
+<p><img src="/Users/chenhao06/Desktop/runtimeDebug06.png" srcset="/img/loading.gif" alt="runtimeDebug06"></p>
+<p>这里我们要先弄清楚2个问题</p>
+<p>1.苹果会持续更新runtime源码库，因为mac系统版本升级需要兼容，这个git源码也会跟着官方更新，所以如果你编译最新版本的源码，请先升级你的系统和Xcode，否则你只能编译较低版本，这也是为什么我建议大家clone源码，便于切换版本。</p>
+<p>2.SIP（系统完整性保护）开发的同学应该多多少少接触过，很多三方应用或者平台都需要对系统文件做修改，那么就必须先关掉SIP，我们的runtime源码库因为会替换系统的源码库，所以也必须先把SIP关掉。</p>
+<p>在终端中输入csrutil status查看SIP状态，如果是enabled，那么就需要进入Recovery模式关闭。完成之后继续我们上面的步骤。</p>
+<p>关于debug的问题，在git上也有一个<a href="https://github.com/RetVal/objc-runtime/issues/20" target="_blank" rel="noopener">issue</a>，如果有后续更新，大家也可以看一下。</p>
+<h2 id="源码调试"><a href="#源码调试" class="headerlink" title="源码调试"></a>源码调试</h2><h3 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h3><p><img src="http://q7zkcqazl.bkt.clouddn.com/runtimeDebug07.png" srcset="/img/loading.gif" alt="runtimeDebug07"></p>
+<p>在main函数中，初始化一个NSObject，然后step into进源码（注意按住control和control-shift的操作）</p>
+<p><img src="http://q7zkcqazl.bkt.clouddn.com/runtimeDebug08.png" srcset="/img/loading.gif" alt="runtimeDebug08"></p>
+<p>ok，目的完成，现在可以尽情探索啦。</p>
+<h3 id="汇编调试"><a href="#汇编调试" class="headerlink" title="汇编调试"></a>汇编调试</h3><p>有时候对于方法底层调用不够清楚，想要完整的查看调用流程，我们可以借助汇编模式查看代码运行过程</p>
+<p><img src="http://q7zkcqazl.bkt.clouddn.com/runtimeDebug10.png" srcset="/img/loading.gif" alt="runtimeDebug09"></p>
+<p>如图，开启汇编调试模式，这样我们所有的断点都会进入汇编代码里。以之前main函数中断点为例</p>
+<p><img src="http://q7zkcqazl.bkt.clouddn.com/runtimeDebug10.png" srcset="/img/loading.gif" alt="runtimeDebug10"></p>
+<p>可以很清晰的看到我们的函数入口，以及函数实现中的方法调用，对于指令和相关地址我们可以用expr命令打印。</p>
+<p>至于跳转的操作，我们根据自己的需要使用step over 和step in（按住control进入指令内部，或者按住control-shift进入线程）。</p>
+<p>另外，有没有注意到main函数的汇编代码里有熟悉的autoreleasePoolPush和autorealesePoolPop呢?又是一个知识点呀。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>至此，runtime源码解析的部分已经总结完了，是不是觉得很简单？</p>
+<p>其实当中还有很多可以扩展的地方，包括相对路径相对路径（@rpath,@loader_path, @executable_path）；shell脚本DYLD_INSERT_LIBRARIES，install_name_tool，动态库替换；汇编模式expr调试，符号断点等等。越学习越发现自己的懂的东西是多么的少，继续努力！</p>
+<p>如有错误，烦请指正~</p>
+
+            </div>
+            <hr>
+            <div>
+              <p>
+                
+                
+              </p>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+              
+            </div>
+
+            
+          </div>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc-start"></div>
+<div id="toc">
+  <p class="h5"><i class="far fa-list-alt"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a class="z-depth-1" id="scroll-top-button" href="#" role="button">
+      <i class="fa fa-chevron-up scroll-top-arrow" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><b>Hexo</b></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"> <b>Fluid</b></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/popper.js/1.16.1/umd/popper.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="https://cdn.staticfile.org/mdbootstrap/4.13.0/js/mdb.min.js" ></script>
+<script  src="/js/main.js" ></script>
+
+
+  <script  src="/js/lazyload.js" ></script>
+
+
+
+  
+  <script  src="https://cdn.staticfile.org/tocbot/4.10.0/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var navHeight = $('#navbar').height();
+      var post = $('#post');
+      var toc = $('#toc');
+      var tocLimMax = post.offset().top + post.height() - navHeight;
+
+      $(window).scroll(function () {
+        var tocLimMin = $('#toc-start').offset().top - navHeight;
+        var scroH = document.body.scrollTop + document.documentElement.scrollTop;
+
+        if (tocLimMin <= scroH && scroH <= tocLimMax) {
+          toc.css({
+            'display': 'block',
+            'position': 'fixed',
+            'top': navHeight,
+          });
+        } else if (scroH <= tocLimMin) {
+          toc.css({
+            'position': '',
+            'top': '',
+          });
+        } else if (scroH > tocLimMax) {
+          toc.css('display', 'none');
+        }
+      });
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '.post-content',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        scrollSmooth: true,
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc > p').css('visibility', 'visible');
+      }
+      var offset = $('#board-ctn').css('margin-right')
+      $('#toc-ctn').css({
+        'right': offset
+      })
+    });
+  </script>
+
+
+
+
+
+
+
+
+
+
+<!-- Plugins -->
+
+
+
+  <script  src="https://cdn.staticfile.org/prettify/188.0.0/prettify.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      $('pre').addClass('prettyprint  linenums');
+      prettyPrint();
+    })
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "调试Runtime源码&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    var path = "/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      getSearchFile(path);
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <script>
+    $("#post img:not(.no-zoom img, img[no-zoom])").each(
+      function () {
+        var element = document.createElement("a");
+        $(element).attr("data-fancybox", "images");
+        $(element).attr("href", $(this).attr("src"));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
