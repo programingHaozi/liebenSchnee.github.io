@@ -550,7 +550,7 @@ objc_property_t *properties = class_copyPropertyList(LenderClass, &amp;outCount)
 <p>你可以通过 <code>class_getProperty</code> 和 <code>protocol_getProperty</code> 方法，通过给定的名称分别从类和协议中获取指定的属性：</p>
 <pre><code class="objective-c">objc_property_t class_getProperty(Class cls, const char *name)
 objc_property_t protocol_getProperty(Protocol *proto, const char *name, BOOL isRequiredProperty, BOOL isInstanceProperty)</code></pre>
-<p>你可以通过 <code>property_getAttributes</code> 方法来获取属性的名称和 <code>@encode</code> 类型编码字符。查看 <a href="#类型编码">类型编码</a>获取更多关于类型编码字符的信息，查看<a href="##属性类型字符">属性类型字符</a> 和 <a href="##属性内容描述示例">属性内容描述示例</a>获取更多关于属性编码字符的信息。</p>
+<p>你可以通过 <code>property_getAttributes</code> 方法来获取属性的名称和 <code>@encode</code> 类型编码字符。查看 <a href="#类型编码">类型编码</a>获取更多关于类型编码字符的信息，查看<a href="#属性类型字符">属性类型字符</a> 和 <a href="#属性内容描述示例">属性内容描述示例</a>获取更多关于属性编码字符的信息。</p>
 <pre><code class="objective-c">const char *property_getAttributes(objc_property_t property)</code></pre>
 <p>将上述方法结合起来，我们可以打印和类相关的所有属性信息：</p>
 <pre><code class="objective-c">id LenderClass = objc_getClass(&quot;Lender&quot;);
